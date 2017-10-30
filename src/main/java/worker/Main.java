@@ -54,7 +54,7 @@ public class Main {
     ActorSystem system = ActorSystem.create("ClusterSystem", conf);
 
     startupSharedJournal(system, (port == 2551),
-        ActorPaths.fromString("akka.tcp://ClusterSystem@127.0.0.1:2551/user/store"));
+        ActorPaths.fromString("akka.tcp://ClusterSystem@master1:2551/user/store"));
 
     system.actorOf(
         ClusterSingletonManager.props(
@@ -78,6 +78,7 @@ public class Main {
   }
 
   public static void startFrontend(int port) {
+
     Config conf = ConfigFactory.parseString("akka.remote.netty.tcp.port=" + port).
         withFallback(ConfigFactory.load());
 

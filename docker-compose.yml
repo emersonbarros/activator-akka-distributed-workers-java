@@ -1,0 +1,62 @@
+version: '2.1'
+
+services:
+  master1:
+    image: ingensi/play-framework
+    volumes:
+     - .:/app
+    volumes_from:
+     - sbt
+    stdin_open: true
+    command: activator "runMain worker.Main 2551"
+    environment:
+      CLUSTER_PORT: 2551
+      CLUSTER_IP: "master1"
+  master2:
+    image: ingensi/play-framework
+    volumes:
+     - .:/app
+    volumes_from:
+     - sbt
+    stdin_open: true
+    command: activator "runMain worker.Main 2551"
+    environment:
+      CLUSTER_PORT: 2551
+      CLUSTER_IP: "master2"
+  frontend1:
+    image: ingensi/play-framework
+    depends_on:
+     - master1
+    volumes:
+     - .:/app
+    volumes_from:
+     - sbt
+    stdin_open: true
+    command: ["./wait-for-it.sh", "--timeout=20", "master1:2551", "--", "activator",  "runMain worker.Main 3001"]
+  worker1:
+    image: ingensi/play-framework
+    depends_on:
+     - master1
+    volumes:
+     - .:/app
+    volumes_from:
+     - sbt
+    stdin_open: true
+    command: ["./wait-for-it.sh", "--timeout=30", "master1:2551", "--", "activator",  "runMain worker.Main 0"]
+  worker2:
+    image: ingensi/play-framework
+    depends_on:
+     - master1
+    volumes:
+     - .:/app
+    volumes_from:
+     - sbt
+    stdin_open: true
+    command: ["./wait-for-it.sh", "--timeout=30", "master1:2551", "--", "activator",  "runMain worker.Main 0"]
+  sbt:
+    image: centos
+    volumes:
+     - ~/.ivy2:/root/.ivy2:rw
+     - ~/.ivy2:/home/docker/.ivy2:rw
+     - ~/.sbt:/root/.sbt:rw
+     - ~/.sbt:/home/docker/.sbt:rw
